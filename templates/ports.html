@@ -111,11 +111,13 @@
                 }
             };
 
-            $('#btn-fire').click(function(){
-                $.post('/fire', {'group_id': {{ selected_group['id'] }}}, function(m){
+            {% if selected_group %}
+                $('#btn-fire').click(function(){
+                    $.post('/fire', {'group_id': {{ selected_group['id'] }}}, function(m){
 
+                    });
                 });
-            });
+            {% end %}
         });
 
         function start_countdown(time) {
