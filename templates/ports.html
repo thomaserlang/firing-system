@@ -1,0 +1,217 @@
+{% extends main.html %}
+
+{% block head %}
+    <style>
+        .port, .con {
+            text-align: center;
+            cursor: pointer;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        td.con {
+            padding-left:0!important;
+            padding-right:0!important;
+            padding-bottom:0!important;
+        }
+        .port-status {
+            height:10px;
+            width:100%;
+            background-color: #FF0000;
+            margin-top:5px;
+        }
+        .port-status.active {
+            background-color: #005D1C;
+        }
+        .buttons {
+            margin-bottom:20px;
+            background-color:#DBDBDB;
+            padding:20px;
+        }
+        .btn-lock {
+            display: none;
+        }
+        .delay {
+            text-align:center;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function(){
+            var locked = true;
+            var ports = {% raw ports %};
+
+            $.each(ports, function(i, d){
+                if (d['enabled']) {
+                    $('#p'+d['port']+'c'+d['connection'])
+                        .children('.port-status')
+                        .addClass('active');
+                }
+                $('#p'+d['port']+'c'+d['connection']+'-delay').val(
+                    d['delay']
+                );
+            });
+
+            $('.port').click(function(){
+                $('.port'+$(this).attr('port')).children('.port-status').click();
+            });
+            $('.con').click(function(){
+                if (locked) return;
+                $(this).children('.port-status').toggleClass('active');
+            });
+            $('.btn-lock').click(function(){
+                $('.btn-unlock').show();
+                $(this).hide();
+                $('.delay').attr('readonly', true);
+                locked = true;
+            });
+            $('.btn-unlock').click(function(){
+                $('.btn-lock').show();
+                $(this).hide();
+                locked = false;
+                $('.delay').attr('readonly', false);
+            });
+            $('#groups').change(function(){
+                location.href = '/?group_id='+$(this).val();
+            });
+            $('#btn-new').click(function(){
+                location.href = '/';
+            });
+            $('.delay').click(function(){
+                $(this).select();
+            });
+            $('form').submit(function(){
+                var data = [];
+                $('.con').each(function(){
+                    data.push({
+                        'port': parseInt($(this).attr('port')),
+                        'connection': parseInt($(this).attr('con')),
+                        'enabled': $(this).children('.port-status').hasClass('active'),
+                        'delay': $('#p'+$(this).attr('port')+'c'+$(this).attr('con')+'-delay').val(),
+                    });
+                });
+                $('#portsjson').val(JSON.stringify(data));
+            });
+
+            $('.btn-lock').click();
+
+            var url = window.location.href;
+            socket = new WebSocket('ws://'+url.split('/')[2]+'/firing-progress');
+            socket.onopen = function() {
+                socket.send('hello');
+            };
+            socket.onmessage = function(obj) {
+                var d = JSON.parse(obj.data);
+                switch (d['method']) {
+                    case 'countdown':
+                        start_countdown(d['time']);
+                        break;
+                }
+            };
+
+            $('#btn-fire').click(function(){
+                $.post('/fire', {'group_id': {{ selected_group['id'] }}}, function(m){
+
+                });
+            });
+        });
+
+        function start_countdown(time) {
+            $('#btn-fire').hide();
+            $('#btn-simulate-fire').hide();
+            $('#btn-cancel-fire').show().text('CANCEL ('+time+' seconds)')
+        }
+    </script>
+{% end %}
+
+{% block body %}
+    <form class="form-inline buttons" method="post">
+        <div class="form-group">
+            <select id="groups" class="form-control input-lg">
+                <option value="" disabled selected>Groups</option>
+                {% for group in groups %}
+                    <option value="{{ group['id'] }}">{{ group['name'] }}</option>
+                {% end %}
+            </select>
+            <input 
+                class="form-control input-lg" 
+                placeholder="Group name"
+                name="groupname"
+                value="{% if selected_group %}{{ escape(selected_group['name']) }}{% end %}"
+            >
+            <input type="hidden" name="json" id="portsjson" value="{{ escape(ports) }}">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-lg btn-success">Save</button>
+            <button id="btn-new" type="button" class="btn btn-lg btn-primary">New</button>
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn-unlock btn btn-lg btn-warning">Unlock edits</button>
+            <button type="button" class="btn-lock btn btn-lg btn-success">Lock edits</button>
+        </div>
+    </form>
+
+    <div style="margin:20px;">
+        {% for g in GROUPED_PORTS %}
+            <table class="table table-bordered">
+                <tr>
+                    {% for p in g %}
+                       <th colspan="4" port="{{ p }}" class="port">{{ str(p).zfill(2) }}</th> 
+                    {% end %}
+                </tr>
+                <tr>
+                    {% for p in g %}
+                        {% for c in range(1, CONNECTIONS_PER_PORT+1) %}
+                            <td id="p{{p}}c{{c}}" class="con port{{p}}" port="{{p}}" con="{{c}}">
+                                <font color="{{ PORT_COLORS[c] }}">{{ c }}</font>
+                                <div class="port-status"></div>
+                            </td>
+                        {% end %}
+                    {% end %}
+                </tr>
+                <tr>                    
+                {% for p in g %}
+                    {% for c in range(1, CONNECTIONS_PER_PORT+1) %}
+                        <td style="padding:0;">
+                            <input  
+                                id="p{{p}}c{{c}}-delay" 
+                                port="{{p}}" 
+                                con="{{c}}"
+                                class="delay"
+                                style="width:100%;border:none;border-color: transparent;" 
+                                type="text"
+                            >
+                        </td>
+                    {% end %}
+                {% end %}
+                </tr>
+            </table>
+        {% end %}
+    </div>
+    {% if selected_group %}
+        <row>
+            <div class="col-md-12" style="margin-top:20px;">
+                <button 
+                    class="btn btn-lg btn-danger" 
+                    style="width:100%;height:100px;"
+                    id="btn-fire"
+                >
+                    FIRE
+                </button>
+            </div>
+        </row>
+        <row>
+            <div class="col-md-12" style="margin-top:20px;">
+                <button 
+                    class="btn btn-lg btn-warning" 
+                    style="width:100%;height:100px;"
+                    id="btn-cancel-fire"
+                >
+                    CANCEL
+                </button>
+            </div>
+        </row>
+    {% end %}
+{% end %}
