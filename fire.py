@@ -73,6 +73,8 @@ def generate_timelapse(ports):
         for d in ports:
             if a != d['delay']:
                 continue
+            if not d['enabled']:
+                continue
             chip = int((((d['port']-1)*constants.CONNECTIONS_PER_PORT)) / \
                 constants.CONNECTIONS_PER_CHIP)
             _b = ((d['port'] - (chip * constants.CONNECTIONS_PER_PORT))) * \
