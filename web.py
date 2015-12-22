@@ -135,10 +135,18 @@ class Fire_handler(tornado.web.RequestHandler):
     def post(self):
         import threading
         import fire
+        cancel = self.get_argument('cancel', None)
+        if cancel:
+            fire.stop = True
+            return
+        if Fire_handler.t:
+            if Fire_handler.t.isAlive():
+                return
         Fire_handler.t = threading.Thread(
             target=fire.fire, 
             args=(self.get_argument('group_id')),
         )
+        fire.stop = False
         Fire_handler.t.daemon = True
         Fire_handler.t.start()
 

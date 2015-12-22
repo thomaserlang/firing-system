@@ -4,6 +4,8 @@ from decorators import new_cursor
 import copy
 import time
 
+stop = False
+
 def fire(group_id):
     ports = get_group_ports(group_id)
     timelapse = generate_timelapse(ports)
@@ -17,6 +19,8 @@ def fire(group_id):
         try:
             for t in timelapse:
                 for d in t:
+                    if stop:
+                        return
                     logging.info(d)
                     if bus:
                         bus.write_byte_data(
