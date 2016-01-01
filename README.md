@@ -1,4 +1,4 @@
-# Homebuild firing system
+# Homemade firing system
 
 ![1](http://i.imgur.com/lhlOUbV.jpg)
 ![2](http://i.imgur.com/YNNIrmj.jpg)
