@@ -6,5 +6,5 @@
 ![4](http://i.imgur.com/o7sMnYm.jpg)
 ![5](http://i.imgur.com/weoVIM2.jpg)
 ![6](http://i.imgur.com/dR1uUnf.jpg)
-![7](http://i.imgur.com/FzyVBi8.jpg)
+![7](http://i.imgur.com/FzyVBi8.jpg?1)
 ![8](http://i.imgur.com/dKhVF6s.jpg)
