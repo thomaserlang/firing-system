@@ -1,6 +1,6 @@
 # Homemade firing system
 
-![1](http://i.imgur.com/lhlOUbV.jpg)
+![1](http://i.imgur.com/CbZhHTS.jpg)
 ![2](http://i.imgur.com/YNNIrmj.jpg)
 ![3](http://i.imgur.com/dSieUhC.jpg)
 ![4](http://i.imgur.com/o7sMnYm.jpg)
